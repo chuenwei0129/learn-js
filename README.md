@@ -1,2 +1,3 @@
-# learn-js
-学习 js
+# JS
+
+## [速读 ECMAScript 6 入门](doc/es6.md)
