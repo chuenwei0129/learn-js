@@ -18,6 +18,19 @@
   - [default](#default)
   - [export 与 import 的复合写法](#export-与-import-的复合写法)
   - [import()](#import-1)
+- [class 基本语法和继承](#class-基本语法和继承)
+  - [类](#类)
+  - [语法糖](#语法糖)
+- [字符串](#字符串)
+- [数值](#数值)
+- [函数](#函数)
+- [数组](#数组)
+- [对象](#对象)
+- [解构赋值](#解构赋值)
+  - [数组的解构赋值](#数组的解构赋值)
+  - [对象的解构赋值](#对象的解构赋值)
+  - [原始类型包装对象的解构赋值](#原始类型包装对象的解构赋值)
+  - [函数参数的解构赋值](#函数参数的解构赋值)
 
 ## [let 和 const 命令](https://es6.ruanyifeng.com/#docs/let)
 
@@ -369,3 +382,137 @@ import(`./section-modules/${someVariable}.js`)
 另外，`import()` 函数与所加载的模块没有静态连接关系，这点也是与 `import` 语句不相同。`import()` 类似于 Node 的 `require` 方法，区别主要是**前者是异步加载，后者是同步加载**。
 
 - [JavaScript 中 import() 是一个函数吗？](https://www.zhihu.com/question/457710733/answer/1869069289)
+
+## class 基本语法和继承
+
+### 类
+
+### 语法糖
+
+## 字符串
+
+## 数值
+
+## 函数
+
+## 数组
+
+## 对象
+
+## 解构赋值
+
+### 数组的解构赋值
+
+```js
+let [, , third] = [1, 2, 3]
+console.log(third) // 3
+
+let [first, ...rest] = [1, 2, 3]
+console.log(first, rest) // 1 [2, 3]
+
+let [foo, bar] = [1]
+console.log(foo, bar) // 1 undefined
+
+let [a] = [1, 2]
+console.log(a) // 1
+
+let [x, y, z] = new Set(['a', 'b', 'c'])
+console.log(x, y, z) // a b c
+
+let [[h, i], [j, k]] = new Map([
+  [1, 2],
+  [2, 3]
+])
+console.log(h, i, j, k) // 1 2 2 3
+
+function* fibs() {
+  let a = 0
+  let b = 1
+  while (true) {
+    yield a
+    ;[a, b] = [b, a + b]
+  }
+}
+let [firstFib, secondFib, thirdFib, fourthFib, fifthFib] = fibs()
+console.log(firstFib, secondFib, thirdFib, fourthFib, fifthFib) // 0 1 1 2 3
+
+// 默认值
+let [g = 1] = [undefined]
+console.log(g) // 1
+
+let [d = 1] = [null]
+console.log(d) // null
+
+// f() 惰性求值
+const f = () => 1
+let [e = f()] = [undefined]
+let [r = f()] = [null]
+console.log(e, r) // 1 null
+```
+
+### 对象的解构赋值
+
+```js
+let { q, w } = { q: 'q', w: 'w' }
+console.log(q, w) // q w
+
+let { x: q1 } = { x: 'x' }
+console.log(q1) // x
+
+let { w1 } = { w2: 'w2' }
+console.log(w1) // undefined
+
+// 嵌套
+let {
+  y: { z: n }
+} = { y: { z: 'z' } }
+// y 是模式，不是变量，因此不会被赋值
+console.log(n) // z
+
+let obj = {
+  p: ['Hello', { y: 'World' }]
+}
+let {
+  p: po,
+  p: [he, { y: wo }]
+} = obj
+console.log(po, he, wo) // Hello { y: 'World' }  Hello World
+
+// 对象默认值
+let { x1: x1 = 3 } = { x1: undefined }
+console.log(x1) // 3
+let { x2 = 3 } = { x2: null }
+console.log(x2) // null
+```
+
+### 原始类型包装对象的解构赋值
+
+```js
+// 字符串
+const [a1, b1, c1, d1, e1, f1, g1, h1] = 'hello'
+console.log(a1, b1, c1, d1, e1, f1, g1, h1) // h e l l o undefined undefined undefined
+const { length: len } = 'hello'
+console.log(len) // 5
+
+// 数值和布尔值的解构赋值
+let { toString: s } = 123
+console.log(s === Number.prototype.toString) // true
+let { valueOf: v } = true
+console.log(v === Boolean.prototype.valueOf) // true
+
+// null 和 undefined
+let { length: len1 } = null
+console.log(len1) // TypeError: Cannot destructure property 'length' of 'null' as it is null.
+let { length: len2 } = undefined
+console.log(len2) // TypeError: Cannot destructure property 'length' of 'undefined' as it is undefined.
+```
+
+### 函数参数的解构赋值
+
+```js
+;[
+  [1, 2],
+  [3, 4]
+].map(([a, b]) => console.log(a + b)) // 3 7
+;[1, undefined, 3].map((x = 'yes') => console.log(x)) // 1 yes 3
+```
