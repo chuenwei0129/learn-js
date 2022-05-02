@@ -26,6 +26,13 @@
 - [函数](#函数)
 - [数组](#数组)
 - [对象](#对象)
+  - [属性的简洁表示法和属性名表达式](#属性的简洁表示法和属性名表达式)
+  - [方法的 name 属性](#方法的-name-属性)
+  - [属性的可枚举性](#属性的可枚举性)
+  - [属性的遍历](#属性的遍历)
+  - [super 关键字](#super-关键字)
+  - [对象的扩展运算符](#对象的扩展运算符)
+  - [对象的新增方法](#对象的新增方法)
 - [解构赋值](#解构赋值)
   - [数组的解构赋值](#数组的解构赋值)
   - [对象的解构赋值](#对象的解构赋值)
@@ -397,9 +404,307 @@ import(`./section-modules/${someVariable}.js`)
 
 ## 数组
 
-## 对象
+## [对象](https://es6.ruanyifeng.com/#docs/object#%E5%B1%9E%E6%80%A7%E7%9A%84%E7%AE%80%E6%B4%81%E8%A1%A8%E7%A4%BA%E6%B3%95)
 
-## 解构赋值
+### 属性的简洁表示法和属性名表达式
+
+```js
+// 属性的简洁表示法
+let birth = '2000/01/01'
+
+const Person = {
+  _name: '张三',
+
+  // 等同于 birth: birth
+  birth,
+
+  // 等同于 hello: function ()...
+  // 类字面量的方法有 super 关键字，上面函数没有 super 关键字
+  // 类字面量的方法不能用作构造函数
+  hello() {
+    console.log('我的名字是', this.name)
+  },
+
+  get name() {
+    return this._name
+  },
+
+  set name(value) {
+    this._name = value
+  }
+}
+
+// 属性名表达式
+let propKey = 'foo'
+let key = { a: 1 }
+
+let obj = {
+  [propKey]: true,
+  ['a' + 'bc']() {
+    return 'abc'
+  },
+  // 属性名表达式如果是一个对象，默认情况下会自动将对象转为字符串 `[object Object]`
+  [key]: true
+}
+
+console.log(obj) // { foo: true, abc: [Function: abc] } '[object Object]': true
+```
+
+### 方法的 name 属性
+
+函数的 `name` 属性，返回函数名。对象方法也是函数，因此也有 `name` 属性。
+
+```js
+const person = {
+  sayName() {
+    console.log('hello!')
+  }
+}
+person.sayName.name // "sayName"
+```
+
+上面代码中，方法的 `name` 属性返回函数名（即方法名）。
+
+如果对象的方法使用了取值函数（`getter`）和存值函数（`setter`），则 `name` 属性不是在该方法上面，而是该方法的属性的描述对象的 `get` 和 `set` 属性上面，返回值是方法名前加上 `get` 和 `set`。
+
+```js
+const obj1 = {
+  get foo() {},
+  set foo(x) {}
+}
+
+// obj.foo.name
+// TypeError: Cannot read property 'name' of undefined
+
+const descriptor = Object.getOwnPropertyDescriptor(obj1, 'foo')
+console.log(descriptor.get.name) // "get foo"
+console.log(descriptor.set.name) // "set foo"
+```
+
+有两种特殊情况：`bind` 方法创造的函数，`name` 属性返回 `bound` 加上原函数的名字；`Function` 构造函数创造的函数，`name` 属性返回 `anonymous`。
+
+```js
+console.log(new Function().name) // "anonymous"
+
+const doSomething = function () {
+  // ...
+}
+console.log(doSomething.name) // "doSomething"
+```
+
+如果对象的方法是一个 `Symbol` 值，那么 `name` 属性返回的是这个 `Symbol` 值的描述。
+
+```js
+const key1 = Symbol('description')
+const key2 = Symbol()
+let obj2 = {
+  [key1]() {},
+  [key2]() {}
+}
+console.log(obj2[key1].name) // "description"
+console.log(obj2[key2].name) // ""
+```
+
+上面代码中，`key1` 对应的 `Symbol` 值有描述，`key2` 没有。
+
+### 属性的可枚举性
+
+对象的每个属性都有一个描述对象（Descriptor），用来控制该属性的行为。`Object.getOwnPropertyDescriptor` 方法可以获取该属性的描述对象。
+
+```js
+const obj3 = { foo: 1 }
+const descriptor1 = Object.getOwnPropertyDescriptor(obj3, 'foo')
+
+console.log(descriptor1) // { value: 1, writable: true, enumerable: true, configurable: true }
+```
+
+描述对象的 `enumerable` 属性，称为“可枚举性”，如果该属性为 `false`，就表示某些操作会忽略当前属性。
+
+- `for...in` 循环： 只遍历**对象自身的和继承的可枚举**的属性。
+- `Object.keys()`： 返回对象**自身的所有可枚举**的属性的键名。
+- `JSON.stringify()`： 只串行化**对象自身的可枚举**的属性。
+- `Object.assign()`： 忽略`enumerable`为`false`的属性，**只拷贝对象自身的可枚举**的属性。
+
+### 属性的遍历
+
+ES6 一共有 5 种方法可以遍历对象的属性。
+
+> **（1）for...in**
+
+`for...in` 循环遍历对象自身的和继承的可枚举属性（不含 `Symbol` 属性）。
+
+> **（2）Object.keys(obj)**
+
+`Object.keys` 返回一个数组，包括对象自身的（不含继承的）所有可枚举属性（不含 `Symbol` 属性）的键名。
+
+> **（3）Object.getOwnPropertyNames(obj)**
+
+`Object.getOwnPropertyNames` 返回一个数组，包含对象自身的所有属性（不含 Symbol 属性，但是包括不可枚举属性）的键名。
+
+> **（4）Object.getOwnPropertySymbols(obj)**
+
+`Object.getOwnPropertySymbols` 返回一个数组，包含对象自身的所有 `Symbol` 属性的键名。
+
+> **（5）Reflect.ownKeys(obj)**
+
+`Reflect.ownKeys` 返回一个数组，包含对象自身的（不含继承的）所有键名，不管键名是 `Symbol` 或字符串，也不管是否可枚举。
+
+以上的 5 种方法遍历对象的键名，都遵守同样的属性遍历的次序规则。
+
+- 首先遍历所有数值键，按照数值升序排列。
+- 其次遍历所有字符串键，按照加入时间升序排列。
+- 最后遍历所有 `Symbol` 键，按照加入时间升序排列。
+
+```js
+console.log(
+  Reflect.ownKeys({
+    [Symbol()]: 1,
+    10: 2,
+    3: 3,
+    a: 4
+  })
+) // [ '3', '10', 'a', Symbol() ]
+```
+
+上面代码中，`Reflect.ownKeys` 方法返回一个数组，包含了参数对象的所有属性。这个数组的属性次序是这样的，首先是数值属性 `3` 和 `10`，其次是字符串属性 `a`，最后是 `Symbol` 属性。
+
+### super 关键字
+
+`this` 关键字总是指向函数所在的当前对象，ES6 又新增了另一个类似的关键字 `super`，指向当前对象的原型对象。
+
+JavaScript 引擎内部，`super.foo` 等同于 `Object.getPrototypeOf(this).foo`（属性）或 `Object.getPrototypeOf(this).foo.call(this)`（方法）。
+
+```js
+// 报错
+const obj = {
+  foo: super.foo
+}
+
+// 报错
+const obj = {
+  foo: () => super.foo
+}
+
+// 报错
+const obj = {
+  foo: function () {
+    return super.foo
+  }
+}
+```
+
+### 对象的扩展运算符
+
+```js
+let z = { a: 3, b: 4 }
+let n = { ...z }
+console.log(n) // { a: 3, b: 4 }
+
+let arrLike = { ...[1, 2, 3] }
+console.log(arrLike) // { '0': 1, '1': 2, '2': 3 }
+
+console.log({ ...{}, ...{ a: 1 }, b: 2 }) // { a: 1, b: 2 }
+
+// 等同于 { ...Object(true), ...Object(null), ...} === {}
+// 如果扩展运算符后面是字符串，它会自动转成一个类似数组的对象，因此返回的不是空对象。
+console.log({ ...1, ...'abc', ...true, ...null, ...undefined }) // { '0': 'a', '1': 'b', '2': 'c' }
+
+// 对象的扩展运算符，只会返回参数对象自身的、可枚举的属性
+class C {
+  p = 12
+  m() {} // 不可枚举，实例原型上的方法
+}
+
+let c = new C()
+let clone = { ...c }
+
+console.log(clone) // { p: 12 }
+
+// 等同于 console.log({ ...clone, ...{ q: 13 } })
+Object.assign(clone, { q: 13 })
+console.log(clone) // { p: 12, q: 13 }
+```
+
+### 对象的新增方法
+
+```js
+// Object.is()
+console.log(+0 === -0) // true
+console.log(NaN === NaN) // false
+
+console.log(Object.is(+0, -0)) // false
+console.log(Object.is(NaN, NaN)) // true
+
+// Object.assign()
+// Object.assign() 方法用于对象的合并，将源对象（source）的所有可枚举属性，复制到目标对象（target）。
+const target = { a: 1 }
+const source1 = { a: 2, b: 2 }
+const source2 = { c: 3 }
+
+Object.assign(target, source1, source2)
+console.log(target) // { a: 2, b: 2, c: 3 }
+
+// 隐式类型转换
+console.log(typeof Object.assign(2)) // "object"
+
+// 如果 undefined 和 null 不在首参数，就不会报错。
+let obj4 = { a: 1 }
+console.log(Object.assign(obj4, undefined, null) === obj4) // true
+
+// 属性名为 Symbol 值的属性，也会被 Object.assign() 拷贝。
+console.log(Object.assign({ a: 'b' }, { [Symbol('c')]: 'd' })) // { a: 'b', [Symbol(c)]: 'd' }
+
+// Object.assign 方法总是拷贝一个属性的值，而不会拷贝它背后的赋值方法或取值方法。
+const source3 = {
+  get foo() {
+    return 1
+  }
+}
+const target2 = {}
+console.log(Object.assign(target2, source3)) // { foo: 1 }
+
+// Object.getOwnPropertyDescriptors()
+const obj5 = {
+  foo: 123,
+  get bar() {
+    return 'abc'
+  }
+}
+
+console.log(Object.getOwnPropertyDescriptors(obj5)) // { foo: { value: 123, writable: true, enumerable: true, configurable: true }, bar: { get: [Function: get bar], set: undefined, enumerable: true, configurable: true } }
+
+// __proto__属性，Object.setPrototypeOf()，Object.getPrototypeOf()
+const obj6 = { a: 1 }
+const obj7 = Object.create(obj6)
+console.log(obj7.__proto__ === obj6) // true
+
+Object.setPrototypeOf(obj7, null)
+console.log(obj7.__proto__ === obj6) // false
+console.log(Object.getPrototypeOf(obj7)) // null
+
+// Object.keys()，Object.values()，Object.entries()
+const obj8 = { foo: 123, bar: 456 }
+console.log(Object.keys(obj8)) // [ 'foo', 'bar' ]
+console.log(Object.values(obj8)) // [ 123, 456 ]
+console.log(Object.entries(obj8)) // [ [ 'foo', 123 ], [ 'bar', 456 ] ]
+
+// Object.fromEntries()
+console.log(
+  Object.fromEntries([
+    ['foo', 123],
+    ['bar', 456]
+  ])
+) // { foo: 123, bar: 456 }
+
+const map = new Map([
+  ['a', 1],
+  ['b', 2]
+])
+
+console.log(Object.fromEntries(map)) // { a: 1, b: 2 }
+```
+
+## [解构赋值](https://es6.ruanyifeng.com/#docs/destructuring)
 
 ### 数组的解构赋值
 
