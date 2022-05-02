@@ -30,6 +30,12 @@
   - [String.fromCodePoint()](#stringfromcodepoint)
   - [String.raw()](#stringraw)
 - [数值](#数值)
+  - [数值分隔符](#数值分隔符)
+  - [Number.isNaN()](#numberisnan)
+  - [BigInt 数据类型](#bigint-数据类型)
+    - [`BigInt` 函数](#bigint-函数)
+    - [转换规则](#转换规则)
+    - [数学运算](#数学运算)
 - [函数](#函数)
 - [数组](#数组)
   - [扩展运算符](#扩展运算符)
@@ -408,7 +414,7 @@ import(`./section-modules/${someVariable}.js`)
 
 ### 语法糖
 
-## 字符串
+## [字符串](https://es6.ruanyifeng.com/#docs/string)
 
 ### 字符的 Unicode 表示法
 
@@ -535,7 +541,114 @@ ES6 提供了 `String.fromCodePoint()` 方法，可以识别大于 `0xFFFF` 的�
 
 ES6 还为原生的 String 对象，提供了一个 `raw()` 方法。该方法**返回一个斜杠都被转义（即斜杠前面再加一个斜杠）的字符串**，往往用于模板字符串的处理方法。
 
-## 数值
+## [数值](https://es6.ruanyifeng.com/#docs/number)
+
+### 数值分隔符
+
+ES2021，允许 JavaScript 的数值使用下划线（_）作为分隔符。
+
+这个数值分隔符没有指定间隔的位数，也就是说，可以每三位添加一个分隔符，也可以每一位、每两位、每四位添加一个。
+
+数值分隔符有几个使用注意点。
+
+- 不能放在数值的最前面（leading）或最后面（trailing）。
+- 不能两个或两个以上的分隔符连在一起。
+- 小数点的前后不能有分隔符。
+- 科学计数法里面，表示指数的 `e` 或 `E` 前后不能有分隔符。
+
+```js
+console.log(123_00 === 12_300) // true
+console.log(123_00_0000 === 1_23_00_0_000) // true
+console.log(0.0000_1 === 0.00001) // true
+console.log(1.2e1_0 === 12_000_000_000) // true
+```
+
+下面三个将字符串转成数值的函数，不支持数值分隔符。**主要原因是语言的设计者认为，数值分隔符主要是为了编码时书写数值的方便，而不是为了处理外部输入的数据。**
+
+- Number()
+- parseInt()
+- parseFloat()
+
+```js
+console.log(parseInt('123_00')) // 123
+console.log(Number('123_00')) // NaN
+```
+
+### Number.isNaN()
+
+`Number.isNaN()` 只有对于 `NaN` 才返回 `true`，非 `NaN` 一律返回 `false`。
+
+与传统的全局方法 `isNaN()` 的区别在于，传统方法先调用 `Number()` 将非数值的值转为数值，再进行判断，而这个新方法只对数值有效。
+
+```js
+console.log(isNaN(NaN)) // true
+console.log(isNaN('NaN')) // true
+console.log(Number.isNaN(NaN)) // true
+console.log(Number.isNaN('NaN')) // false
+```
+
+### BigInt 数据类型
+
+`BigInt` 可以使用负号（-），但是不能使用正号（+），因为会与 `asm.js` 冲突。
+
+```js
+console.log(2 ** 53 === 2 ** 53 + 1) // true
+console.log(2n ** 53n === 2n ** 53n + 1n) // false
+console.log(2n === 2) // false
+console.log(typeof 2n) // "bigint"
+```
+
+#### `BigInt` 函数
+
+JavaScript 原生提供 `BigInt` 函数，可以用它生成 `BigInt` 类型的数值。转换规则基本与 `Number()` 一致，将其他类型的值转为 `BigInt`。
+
+```js
+BigInt(undefined) //TypeError
+BigInt(null) // TypeError
+BigInt('123n') // SyntaxError
+BigInt(123) // 123n
+BigInt('123') // 123n
+BigInt(false) // 0n
+BigInt(true) // 1n
+BigInt(1.5) // RangeError
+BigInt('1.5') // SyntaxError
+```
+
+#### 转换规则
+
+可以使用 `Boolean()`、`Number()` 和 `String()` 这三个方法，将 `BigInt` 可以转为布尔值、数值和字符串类型。
+
+```js
+Boolean(0n) // false
+Boolean(1n) // true
+Number(1n)  // 1
+String(1n)  // "1"
+!0n // true
+!1n // false
+```
+
+#### 数学运算
+
+```js
+9n / 5n // 1n
+```
+
+几乎所有的数值运算符都可以用在 `BigInt`，但是有两个例外。
+
+- 不带符号的右移位运算符 `>>>`
+- 一元的求正运算符 `+`
+
+`BigInt` 不能与普通数值进行混合运算。
+
+```js
+1n + 1.3 // 报错
+```
+
+`BigInt` 与字符串混合运算时，会先转为字符串，再进行运算。
+
+```js
+'' + 123n // "123"
+```
 
 ## 函数
 
