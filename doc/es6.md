@@ -22,6 +22,13 @@
   - [类](#类)
   - [语法糖](#语法糖)
 - [字符串](#字符串)
+  - [字符的 Unicode 表示法](#字符的-unicode-表示法)
+  - [直接输入 U+2028 和 U+2029](#直接输入-u2028-和-u2029)
+  - [JSON.stringify() 的改造](#jsonstringify-的改造)
+  - [模板字符串](#模板字符串)
+  - [实例方法：codePointAt()](#实例方法codepointat)
+  - [String.fromCodePoint()](#stringfromcodepoint)
+  - [String.raw()](#stringraw)
 - [数值](#数值)
 - [函数](#函数)
 - [数组](#数组)
@@ -402,6 +409,131 @@ import(`./section-modules/${someVariable}.js`)
 ### 语法糖
 
 ## 字符串
+
+### 字符的 Unicode 表示法
+
+```js
+'\z' === 'z'  // true
+'\172' === 'z' // true
+'\x7A' === 'z' // true
+// 这种表示法只限于码点在\u0000~\uFFFF之间的字符。超出这个范围的字符，必须用两个双字节的形式表示
+'\u007A' === 'z' // true
+// 将码点放入大括号，就能正确解读该字符
+'\u{7A}' === 'z' // true
+```
+
+### 直接输入 U+2028 和 U+2029
+
+JavaScript 规定有 5 个字符，不能在字符串里面直接使用，只能使用转义形式。
+
+- **U+005C：** 反斜杠（reverse solidus)
+- **U+000D：** 回车（carriage return）
+- **U+2028：** 行分隔符（line separator）
+- **U+2029：** 段分隔符（paragraph separator）
+- **U+000A：** 换行符（line feed）
+
+为了兼容 JSON，ES2019 允许 JavaScript 字符串直接输入 U+2028（行分隔符）和 U+2029（段分隔符）。
+
+> 注意，模板字符串现在就允许直接输入这两个字符。另外，正则表达式依然不允许直接输入这两个字符，这是没有问题的，因为 JSON 本来就不允许直接包含正则表达式。
+
+### JSON.stringify() 的改造
+
+根据标准，JSON 数据必须是 UTF-8 编码。但是，现在的 `JSON.stringify()` 方法有可能返回不符合 UTF-8 标准的字符串。
+
+具体来说，UTF-8 标准规定，`0xD800` 到 `0xDFFF` 之间的码点，不能单独使用，必须配对使用。比如，`\uD834\uDF06` 是两个码点，但是必须放在一起配对使用，代表字符 `𝌆`。这是为了表示码点大于 `0xFFFF` 的字符的一种变通方法。单独使用 `\uD834` 和 `\uDF06` 这两个码点是不合法的，或者颠倒顺序也不行，因为 `\uDF06\uD834` 并没有对应的字符。
+
+`JSON.stringify()` 的问题在于，它可能返回 `0xD800` 到 `0xDFFF` 之间的单个码点。
+
+```js
+JSON.stringify('\u{D834}') // "\u{D834}"
+```
+
+为了确保返回的是合法的 UTF-8 字符，[ES2019](https://github.com/tc39/proposal-well-formed-stringify) 改变了 `JSON.stringify()` 的行为。如果遇到 `0xD800` 到 `0xDFFF` 之间的单个码点，或者不存在的配对形式，它会返回转义字符串，留给应用自己决定下一步的处理。
+
+```js
+JSON.stringify('\u{D834}') // ""\\uD834""
+JSON.stringify('\uDF06\uD834') // ""\\udf06\\ud834""
+```
+
+### 模板字符串
+
+```js
+let x = 1,
+  y = 2
+console.log(`${x} + ${y} = ${x + y}`) // 1 + 2 = 3
+
+const fn = () => 'hello'
+console.log(`${fn()} world`) // hello world
+
+console.log(`hello ${'world'}`) // hello world
+
+// 可以嵌套
+// 标签模板
+let a = 5
+let b = 10
+
+function tag(s, v1, v2) {
+  console.log(s[0]) // 'hello '
+  console.log(s[1]) // ' world '
+  console.log(s[2]) // ''
+  console.log(v1) // 15
+  console.log(v2) // 50
+
+  return 'OK'
+}
+
+console.log(tag`Hello ${a + b} world ${a * b}`) // OK
+
+// 先把不需要替换的参数提出来 [ 'Hello ', ' world ', ' ' ]
+// 再计算 15
+// 50
+// tag([ 'Hello ', ' world ', ' ' ], 15, 50)
+```
+
+### 实例方法：codePointAt()
+
+JavaScript 内部，字符以 UTF-16 的格式储存，**每个字符固定为 2 个字节**。对于那些需要 4 个字节储存的字符（Unicode 码点大于0xFFFF的字符），JavaScript 会认为它们是两个字符。
+
+```js
+console.log('👍'.length) // 2
+console.log([...'👍'].length) // 1
+```
+
+对于这种 4 个字节的字符，JavaScript 不能正确处理，字符串长度会误判为 2，而且`charAt()` 方法无法读取整个字符，`charCodeAt()` 方法只能分别返回前两个字节和后两个字节的值。
+
+ES6 提供了 `codePointAt()` 方法，能够正确处理 4 个字节储存的字符，返回一个字符的码点。
+
+```js
+let s = '👍a'
+console.log(s.codePointAt(0).toString(16)) // 1f44d
+console.log(s.codePointAt(2).toString(16)) // 61 'a'
+```
+
+`codePointAt()` 方法的参数，仍然是不正确的。比如，上面代码中，字符 a 在字符串s的正确位置序号应该是 1，但是必须向 `codePointAt()` 方法传入 2。
+
+```js
+for (let char of s) {
+  console.log(char.codePointAt(0).toString(16))
+}
+```
+
+`codePointAt()` 方法是测试一个字符由两个字节还是由四个字节组成的最简单方法。
+
+```js
+function is32Bit(c) {
+  return c.codePointAt(0) > 0xFFFF
+}
+```
+
+### String.fromCodePoint()
+
+ES6 提供了 `String.fromCodePoint()` 方法，可以识别大于 `0xFFFF` 的字符，弥补了 `String.fromCharCode()` 方法的不足。在作用上，正好与`codePointAt()` 方法相反。
+
+> 注意，fromCodePoint 方法定义在 String 对象上，而 codePointAt 方法定义在字符串的实例对象上。
+
+### String.raw()
+
+ES6 还为原生的 String 对象，提供了一个 `raw()` 方法。该方法**返回一个斜杠都被转义（即斜杠前面再加一个斜杠）的字符串**，往往用于模板字符串的处理方法。
 
 ## 数值
 
