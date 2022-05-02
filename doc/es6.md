@@ -29,6 +29,7 @@
   - [Array.from()](#arrayfrom)
   - [Array.of()](#arrayof)
   - [实例方法：entries()，keys() 和 values()](#实例方法entrieskeys-和-values)
+  - [数组的空位](#数组的空位)
 - [对象](#对象)
   - [属性的简洁表示法和属性名表达式](#属性的简洁表示法和属性名表达式)
   - [方法的 name 属性](#方法的-name-属性)
@@ -484,6 +485,31 @@ for (let [index, value] of arr2.entries()) {
 // at()
 console.log(arr2.at(-1)) // c
 ```
+
+### 数组的空位
+
+数组的空位指的是，数组的某一个位置没有任何值，比如 `Array()` 构造函数返回的数组都是空位。
+
+空位不是 `undefined`，某一个位置的值等于 `undefined`，依然是有值的。空位是没有任何值，`in` 运算符可以说明这一点。
+
+```js
+console.log(0 in [undefined]) // true
+console.log(0 in Array(1)) // false
+```
+
+ES6 则是明确将空位转为 `undefined`，拷贝和遍历都不会忽略。
+
+- `Array.from()` 方法会将数组的空位，转为 `undefined`，也就是说，这个方法不会忽略空位。
+
+- 扩展运算符（`...`）也会将空位转为`undefined`。
+
+- `copyWithin()` 会连空位一起拷贝。
+
+- `fill()` 会将空位视为正常的数组位置。
+
+- `for...of` 循环也会遍历空位。
+
+- `entries()`、`keys()`、`values()`、`find()` 和 `findIndex()` 会将空位处理成 `undefined`。
 
 ## [对象](https://es6.ruanyifeng.com/#docs/object#%E5%B1%9E%E6%80%A7%E7%9A%84%E7%AE%80%E6%B4%81%E8%A1%A8%E7%A4%BA%E6%B3%95)
 

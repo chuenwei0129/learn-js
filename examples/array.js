@@ -45,3 +45,8 @@ for (let [index, value] of arr2.entries()) {
 }
 
 console.log(arr2.at(-1)) // c
+
+// 空位
+console.log(0 in [undefined]) // true
+console.log(0 in Array(1)) // false
+
