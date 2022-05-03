@@ -37,6 +37,13 @@
     - [转换规则](#转换规则)
     - [数学运算](#数学运算)
 - [函数](#函数)
+  - [参数](#参数)
+  - [函数的 length 属性](#函数的-length-属性)
+  - [参数作用域](#参数作用域)
+  - [箭头函数](#箭头函数)
+  - [函数参数的尾逗号](#函数参数的尾逗号)
+  - [Function.prototype.toString()](#functionprototypetostring)
+  - [catch 语句省略参数](#catch-语句省略参数)
 - [数组](#数组)
   - [扩展运算符](#扩展运算符)
   - [Array.from()](#arrayfrom)
@@ -650,7 +657,90 @@ String(1n)  // "1"
 '' + 123n // "123"
 ```
 
-## 函数
+## [函数](https://es6.ruanyifeng.com/#docs/function)
+
+### 参数
+
+```js
+// 惰性求值
+let x = 99
+const foo = (p = x + 1) => {
+  console.log(p)
+}
+foo() // 100
+x = 100
+foo() // 101
+
+// 显式输入 undefined 使默认值生效
+function bar(x = 5, y = 6) {
+  console.log(x, y)
+}
+
+bar(undefined, null) // 5 null
+```
+
+### 函数的 length 属性
+
+指定了默认值以后，函数的 length 属性，将返回没有指定默认值的参数个数。也就是说，指定了默认值后，length 属性将失真。
+
+```js
+console.log(function (...args) {}.length) // 0
+```
+
+### 参数作用域
+
+一旦设置了参数的默认值，函数进行声明初始化时，参数会形成一个单独的作用域（context）。等到初始化结束，这个作用域就会消失。这种语法行为，在不设置参数默认值时，是不会出现的。
+
+```js
+let x1 = 1
+
+function f(y = x1) {
+  let x1 = 2
+  console.log(y)
+}
+
+f() // 1
+```
+
+### 箭头函数
+
+箭头函数有几个使用注意点。
+
+1. 箭头函数没有自己的 `this` 对象。
+
+2. 不可以当作构造函数，也就是说，不可以对箭头函数使用 `new` 命令，否则会抛出一个错误。
+
+3. 不可以使用 `arguments` 对象，该对象在函数体内不存在。如果要用，可以用 `rest` 参数代替。
+
+4. 不可以使用 `yield` 命令，因此箭头函数不能用作 Generator 函数。
+
+### 函数参数的尾逗号
+
+ES2017 允许函数的最后一个参数有尾逗号（trailing comma）。
+
+### Function.prototype.toString()
+
+```js
+function func(x, y = 'b') {
+  // do something
+}
+
+console.log(func.toString())
+
+// function func(x, y = 'b') {
+//   do something
+// }
+```
+
+### catch 语句省略参数
+
+```js
+try {
+  // ...
+} catch {
+  // ...
+}
+```
 
 ## [数组](https://es6.ruanyifeng.com/#docs/array)
 
