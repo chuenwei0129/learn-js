@@ -23,21 +23,34 @@ bar(undefined, null) // 5 null
 console.log(function (...args) {}.length) // 0
 
 // 参数作用域
-let x1 = 1
-
-function f(y = x1) {
-  let x1 = 2
-  console.log(y)
-}
-
-f() // 1
-
-// toString
-function func(x, y = 'b') {
-  // do something
-}
-
-console.log(func.toString())
-// function func(x, y = 'b') {
-// do something
+// function fn(x) {
+//   let x = 10
 // }
+// SyntaxError: Identifier 'x' has already been declared
+
+function f2(
+  x = 2,
+  f = function () {
+    x = 3
+  }
+) {
+  var x
+  f()
+  console.log(x)
+}
+
+f2() // 2
+
+function f1(
+  x2 = 2,
+  f = function () {
+    x2 = 3
+  }
+) {
+  let x2 = 5 // SyntaxError: Identifier 'x2' has already been declared
+  f()
+  console.log(x2)
+}
+f1()
+
+// 虽然是基础知识，但估计大部分人不知道；带默认参数值的函数的函数体里第一层作用域不能再声明 lexical 的同名参数的原因很简单：如果让你声明了，那那个参数的实参还能拿的到吗，同时也是为了和不带默认参数值的函数统一；加一层 block 就管不着了 {let y = 4}；加个 debugger Chrome 里能看到每个 y。
