@@ -42,7 +42,7 @@ class MyClass {
 2. `new` 会自动调用 `constructor()` 方法，因此我们可以在 `constructor()` 中初始化属性。（如果我们省略，那么它就被假定为空但存在，依旧会执行）。
 3. 存储类中的方法。
 
-**不仅仅是语法糖**
+**不仅仅是语法糖：**
 
 1. 通过 `class` 创建的函数具有特殊的内部属性标记 `[[FunctionKind]]:"classConstructor"`。因此，它与手动创建并不完全相同。
 2. 类方法不可枚举。 类定义将 `"prototype"` 中的所有方法的 `enumerable` 标志设置为 `false`。
