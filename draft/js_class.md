@@ -193,7 +193,7 @@ User.staticMethod() // true
 
 **在 `User.staticMethod()` 调用中的 `this` 的值是类构造器 `User` 自身**
 
-**静态属性和方法是可被继承的**
+**静态属性和方法是可被继承的：**
 
 ```js
 class Animal {}
