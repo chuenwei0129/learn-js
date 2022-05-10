@@ -1,42 +1,60 @@
-// 数据类型
+// null is an object
+console.log(typeof null) // object
+console.log(Object.prototype.toString.call(null)) // '[object Null]'
+
+// undefined is not Literal
+console.log(globalThis.NaN) // NaN
+console.log(globalThis.Infinity) // Infinity
+console.log(typeof 100) // number
+var let = 1
+console.log(let) // 1
+var undefined = 3
+console.log(undefined) // 3
 
 // JavaScript 内部，所有数字都是以 64 位浮点数形式储存，即使整数也是如此。所以，1 与 1.0 是相同的，是同一个数。
 console.log(1 === 1.0) // true
 
-// JavaScript 的 64 位浮点数之中，有一个二进制位是符号位。这意味着，任何一个数都有一个对应的负值，就连 0 也不例外。
-console.log(+0 === -0) // true
+// Number.EPSILON
+// 比较两个浮点数差值的绝对值，是否超过误差精度，是否”相等“
+const equal = (a, b) => Math.abs(a - b) < Number.EPSILON
+console.log(equal(0.1 + 0.2, 0.3)) // true
 
-// NaN 是 JavaScript 的特殊值，表示“非数字”（Not a Number）。
-console.log(NaN !== NaN) // true
+// Number.NaN
+// Why does NaN^0 == 1?
+console.log(Number.NaN ** 0) // 1
+console.log(Infinity ** 0) // 1
+console.log((-Infinity) ** 0) // 1
 
 // NaN 不等于任何值，包括它本身。NaN 与任何数（包括它自己）的运算，得到的都是 NaN。
 console.log(1 + NaN) // NaN
+console.log(Object.is(+0, -0)) // false
+console.log(Object.is(NaN, NaN)) // true
+console.log(+0 === -0) // true
+console.log(NaN === NaN) // false
 
-// isNaN() 可以用来判断一个值是否为 NaN。
+// Number.isNaN
+Number.isNaN(NaN) // true
+Number.isNaN(Number.NaN) // true
+// 整数零不能做除数，但是浮点数零可以做除数。
+// 0n / 0n      // 抛出 RangeError
+Number.isNaN(0 / 0) // true
+
 console.log(isNaN(NaN)) // true
-
-// 但是，isNaN 只对数值有效，如果传入其他值，会被先转成数值。比如，传入字符串的时候，字符串会被先转成 NaN，所以最后返回 true，这一点要特别引起注意。也就是说，isNaN 为 true 的值，有可能不是 NaN，而是一个字符串。
+// isNaN 只对数值有效，如果传入其他值，会被先转成数值。比如，传入字符串的时候，字符串会被先转成 NaN，所以最后返回 true，这一点要特别引起注意。也就是说，isNaN 为 true 的值，有可能不是 NaN，而是一个字符串。
 console.log(isNaN('fuck')) // true
 console.log(isNaN({})) // true
+console.log(Number.isNaN('fuck')) // false
+console.log(Number.isNaN({})) // false
 
-// 因此，使用 isNaN 之前，最好判断一下数据类型。
+// polyfill
 function myIsNaN(val) {
   return typeof val === 'number' && isNaN(val)
 }
-
-console.log(myIsNaN(NaN)) // true
-console.log(myIsNaN('fuck')) // false
-console.log(myIsNaN({})) // false
-
-// 判断 NaN 更可靠的方法是，利用 NaN 为唯一不等于自身的值的这个特点，进行判断。
-
+// or
+// 利用 NaN 为唯一不等于自身的值
 function _isNaN(param) {
   return param !== param
 }
-
-console.log(_isNaN(NaN)) // true
-console.log(_isNaN('fuck')) // false
-console.log(_isNaN({})) // false
 
 // parseInt 方法用于将字符串转为整数。
 console.log(parseInt('123')) // 123
@@ -64,3 +82,20 @@ console.log(parseInt('101055', 2)) // 10
 console.log(parseInt('5101055', 2)) // NaN
 
 console.log(parseInt('123', NaN)) // 123
+
+// Infinity
+console.log(42 / -0) // -Infinity
+console.log(42 / +0) // Infinity
+
+// string
+// raw
+console.log(`\\`) // '\'
+console.log(String.raw`\\`) // '\\'
+
+// bigint
+console.log(typeof 1n) // 'bigint'
+console.log(typeof BigInt('1') === 'bigint') // true
+console.log(typeof Object(1n)) // 'object'
+
+console.log(4n / 2n) // 2n
+console.log(7n / 4n) // 1n

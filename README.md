@@ -6,6 +6,7 @@
 
 - `[类型]` [速读 ECMAScript 6 入门（一)](doc/es6_1.md)
 - `[数据]` [速读 ECMAScript 6 入门（二)](doc/es6_2.md)
+<!-- - `[数据]` [速读 ECMAScript 6 入门（二)](doc/es6_2.md) -->
 
 ## 读书笔记
 
