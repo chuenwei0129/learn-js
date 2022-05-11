@@ -1,11 +1,5 @@
 # JavaScript 从零单排(一)<!-- omit in toc -->
 
-<!-- markdown="1" is required for GitHub Pages to render the TOC properly. -->
-
-<details markdown="1">
-  <summary>🌳 <strong>目录</strong></summary>
-<br>
-
 - [数据类型](#数据类型)
   - [值类型和引用类型](#值类型和引用类型)
   - [函数参数按值传递](#函数参数按值传递)
@@ -43,7 +37,6 @@
   - [可选链 "?."](#可选链-)
   - [运算符优先级](#运算符优先级)
 - [循环](#循环)
-
 
 ## 数据类型
 
@@ -395,7 +388,7 @@ if (a == 1 && a == 2 && a == 3) {
 - `parseInt` 方法用于将字符串转为整数。
 - `parseInt` 的参数不是字符串，会先转为字符串再转换。
 - `parseInt` 方法还可以接受第二个参数（2 到 36 之间），如果第二个参数不是数值，会被自动转为一个整数。这个整数只有在 2 到 36 之间，才能得到有意义的结果，超出这个范围，则返回 NaN。如果第二个参数是 `0`、`undefined` 和 `null`，则直接忽略。
-- 二进制只能转换含有 '0'、'1' 的字符串，其他进制也类似。
+- 二进制只能转换含有'0'、'1'的字符串，其他进制也类似。
 - `parseInt` 的返回值只有两种可能，要么是一个十进制整数，要么是 NaN。
 
 ### 面试题：请实现一个 add 函数，满足以下功能
@@ -696,7 +689,7 @@ console.log(user2 ?? 'Anonymous') // John
 
 ### 运算符优先级
 
-![运算符优先级](operator.png)
+![](https://raw.githubusercontent.com/chuenwei0129/my-picgo-repo/master/js/operator-1.png)
 
 ## 循环
 

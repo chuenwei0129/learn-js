@@ -1,4 +1,4 @@
-# JavaScript 基础知识梳理(五)<!-- omit in toc -->
+# JavaScript 从零单排(五)<!-- omit in toc -->
 
 - [Class 基本语法](#class-基本语法)
 - [类继承](#类继承)
